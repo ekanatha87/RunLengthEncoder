@@ -1,25 +1,40 @@
-﻿using System;
-using RunLengthEncoding;
+using System;
+using RunLengthEncoding.Services;
+using RunLengthEncoding.Domain.Models;
+using RunLengthEncoding.Interfaces;
 
 class Program
 {
     static void Main(string[] args)
     {
+        IValidator<EncodeRequest> validator = new InputValidator();
+        IEncoder encoder = new RunLengthEncoder();
+        ILogger logger = new ConsoleLogger();
+        var encodingService = new EncodingService(validator, encoder, logger);
+
         while (true)
         {
             Console.Write("Enter a string to encode: ");
-            var model = new Request { Input = Console.ReadLine() };
+            var request = new EncodeRequest { Input = Console.ReadLine() };
 
-            string encoded = Encoder.Encode(model);
+            string result = encodingService.Encode(request);
 
-            if (encoded.StartsWith("Error:"))
+            if (result.StartsWith("Error:"))
             {
-                Console.WriteLine(encoded);
+                Console.WriteLine(result);
                 continue;
             }
 
-            Console.WriteLine($"Encoded result: {encoded}");
+            Console.WriteLine($"Encoded result: {result}");
             break;
         }
+    }
+}
+
+public class ConsoleLogger : ILogger
+{
+    public void LogError(Exception ex, string message)
+    {
+        Console.WriteLine($"{message} Exception: {ex.Message}");
     }
 }
